@@ -25,11 +25,13 @@ func printIPs(ipType string, ips[]string) string {
 
 func main() {
 	var prevRx, prevTx uint64
+	ifName := "wlp4s0"
+
 	conn, err := dbus.SystemBus()
 	if err != nil {
 		log.Fatal(err)
 	}
-	ifPath, err:= plugins.GetDbusPathForInterface("wlp4s0", conn)
+	ifPath, err:= plugins.GetDbusPathForInterface(ifName, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,7 +43,7 @@ func main() {
 	var status string
 	for {
 		status = ""
-		ipv4s, ipv6s, err := plugins.GetIPs("wlp4s0", "enp0s31f6")
+		ipv4s, ipv6s, err := plugins.GetIPs(ifName, "enp0s31f6")
 		if err != nil {
 			status += fmt.Sprintf("Couldn't get ip addresses", err)
 		} else {
