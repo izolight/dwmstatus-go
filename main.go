@@ -32,6 +32,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	ifPath, err:= plugins.GetDbusPathForInterface("wlp4s0", conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	apPath, err := plugins.GetDbusPathForAP(ifPath, conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for {
 		status := ""
 		ipv4s, ipv6s, err := plugins.GetIPs("wlp4s0", "enp0s31f6")
@@ -52,7 +61,7 @@ func main() {
 			rx, tx = wifiInfo.RX, wifiInfo.TX
 		}
 		fmt.Println(status)
-		ssid, err := plugins.GetSSIDFromDbus("wlp4s0", conn)
+		ssid, err := plugins.GetSSIDFromDbus(apPath, conn)
 		if err == nil {
 			fmt.Println(ssid)
 		}
