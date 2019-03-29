@@ -112,3 +112,27 @@ func GetSSIDFromDbus(apPath dbus.ObjectPath, conn *dbus.Conn) (string, error) {
 	ssid := variant.Value().([]uint8)
 	return string(ssid), nil
 }
+
+func GetBitrateFromDbus(ifPath dbus.ObjectPath, conn *dbus.Conn) (uint32, error) {
+	variant, err := conn.Object(NMPATH, dbus.ObjectPath(ifPath)).GetProperty(NMPATH + ".Device.Wireless.Bitrate")
+	if err != nil {
+		return 0, err
+	}
+	return variant.Value().(uint32), nil
+}
+
+func GetTXBytesFromDbus(ifPath dbus.ObjectPath, conn *dbus.Conn) (uint64, error) {
+	variant, err := conn.Object(NMPATH, dbus.ObjectPath(ifPath)).GetProperty(NMPATH + ".Device.Statistics.TxBytes")
+	if err != nil {
+		return 0, err
+	}
+	return variant.Value().(uint64), nil
+}
+
+func GetRXBytesFromDbus(ifPath dbus.ObjectPath, conn *dbus.Conn) (uint64, error) {
+	variant, err := conn.Object(NMPATH, dbus.ObjectPath(ifPath)).GetProperty(NMPATH + ".Device.Statistics.RxBytes")
+	if err != nil {
+		return 0, err
+	}
+	return variant.Value().(uint64), nil
+}
