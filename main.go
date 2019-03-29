@@ -17,9 +17,6 @@ func printIPs(ipType string, ips[]string) string {
 				status += ", "
 			}
 			status += ip
-			if i == len(ips)-1 {
-				status += " | "
-			}
 		}
 		return status
 	}
