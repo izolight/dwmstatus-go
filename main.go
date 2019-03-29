@@ -41,8 +41,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	var status string
 	for {
-		status := ""
+		status = ""
 		ipv4s, ipv6s, err := plugins.GetIPs("wlp4s0", "enp0s31f6")
 		if err != nil {
 			status += fmt.Sprintf("Couldn't get ip addresses", err)
