@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+const NMPATH = "org.freedesktop.NetworkManager"
+
 func GetIPs(interfaces ...string) ([]string, []string, error) {
 	var ipv4s, ipv6s []string
 	for _, name := range interfaces {
@@ -87,7 +89,7 @@ func GetWifiInfo(wifi string) (WifiInfo, error) {
 
 func GetDbusPathForInterface(ifName string, conn *dbus.Conn) (dbus.ObjectPath, error) {
 	var path string
-	err := conn.Object("org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager").Call("org.freedesktop.NetworkManager.GetDeviceByIpIface", 0, ifName).Store(&path)
+	err := conn.Object(NMPATH, "/org/freedesktop/NetworkManager").Call(NMPATH + ".GetDeviceByIpIface", 0, ifName).Store(&path)
 	if err != nil {
 		return "", err
 	}
@@ -95,7 +97,7 @@ func GetDbusPathForInterface(ifName string, conn *dbus.Conn) (dbus.ObjectPath, e
 }
 
 func GetDbusPathForAP(ifPath dbus.ObjectPath, conn *dbus.Conn) (dbus.ObjectPath, error) {
-	variant, err := conn.Object("org.freedesktop.NetworkManager", ifPath).GetProperty("org.freedesktop.NetworkManager.Device.Wireless.ActiveAccessPoint")
+	variant, err := conn.Object(NMPATH, ifPath).GetProperty(NMPATH + ".Device.Wireless.ActiveAccessPoint")
 	if err != nil {
 		return "", err
 	}
@@ -103,7 +105,7 @@ func GetDbusPathForAP(ifPath dbus.ObjectPath, conn *dbus.Conn) (dbus.ObjectPath,
 }
 
 func GetSSIDFromDbus(apPath dbus.ObjectPath, conn *dbus.Conn) (string, error) {
-	variant, err := conn.Object("org.freedesktop.NetworkManager", dbus.ObjectPath(apPath)).GetProperty("org.freedesktop.NetworkManager.AccessPoint.Ssid")
+	variant, err := conn.Object(NMPATH, dbus.ObjectPath(apPath)).GetProperty(NMPATH + ".AccessPoint.Ssid")
 	if err != nil {
 		return "", err
 	}
