@@ -27,7 +27,7 @@ func printIPs(ipType string, ips[]string) string {
 }
 
 func main() {
-	var rx, tx int
+	//var prevRx, prevTx uint64
 	conn, err := dbus.SystemBus()
 	if err != nil {
 		log.Fatal(err)
@@ -51,7 +51,25 @@ func main() {
 			status += printIPs("IP", ipv4s)
 			status += printIPs("IPv6", ipv6s)
 		}
-		wifiInfo, err := plugins.GetWifiInfo("wlp4s0")
+		ssid, err := plugins.GetSSIDFromDbus(apPath, conn)
+		if err == nil {
+			status += fmt.Sprintf(" | SSID: %s", ssid)
+		}
+		bitrate, err := plugins.GetBitrateFromDbus(ifPath, conn)
+		if err == nil {
+			status += fmt.Sprintf(" | Speed: %s/s", humanize.Bytes(humanize.KByte *uint64(bitrate)))
+		}
+		rx, err := plugins.GetRXBytesFromDbus(ifPath, conn)
+		if err == nil {
+			status += fmt.Sprintf(" | Down: %s/s", humanize.Bytes(rx))
+		}
+		//prevRx = rx
+		tx, err := plugins.GetTXBytesFromDbus(ifPath, conn)
+		if err == nil {
+			status += fmt.Sprintf(" | Down: %s/s", humanize.Bytes(tx))
+		}
+	//	prevTx = tx
+/*		wifiInfo, err := plugins.GetWifiInfo("wlp4s0")
 		if err != nil {
 			status += fmt.Sprintf("Couldn't get wifi info: %s", err)
 		} else {
@@ -60,12 +78,9 @@ func main() {
 			txRate := humanize.Bytes(uint64(wifiInfo.TX - tx))
 			status += fmt.Sprintf(" | Down: %s/s | Up: %s/s", rxRate, txRate)
 			rx, tx = wifiInfo.RX, wifiInfo.TX
-		}
+		}*/
 		fmt.Println(status)
-		ssid, err := plugins.GetSSIDFromDbus(apPath, conn)
-		if err == nil {
-			fmt.Println(ssid)
-		}
+
 		var now = time.Now()
 		time.Sleep(now.Truncate(time.Second).Add(time.Second).Sub(now))
 	}
