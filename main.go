@@ -58,14 +58,14 @@ func main() {
 		if err == nil {
 			status += fmt.Sprintf(" | Speed: %s/s", humanize.Bytes(humanize.KByte *uint64(bitrate)))
 		}
-		rx, err := plugins.GetRXBytesFromDbus(ifPath, conn)
+		rx, err := plugins.GetRxBytes(ifName)
 		if err == nil {
 			status += fmt.Sprintf(" | Down: %s/s", humanize.Bytes(rx-prevRx))
 		}
 		prevRx = rx
-		tx, err := plugins.GetTXBytesFromDbus(ifPath, conn)
+		tx, err := plugins.GetTxBytes(ifName)
 		if err == nil {
-			status += fmt.Sprintf(" | Down: %s/s", humanize.Bytes(tx-prevTx))
+			status += fmt.Sprintf(" | Up: %s/s", humanize.Bytes(tx-prevTx))
 		}
 		prevTx = tx
 /*		wifiInfo, err := plugins.GetWifiInfo("wlp4s0")

@@ -4,13 +4,17 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/godbus/dbus"
+	"io/ioutil"
 	"net"
 	"os/exec"
 	"strconv"
 	"strings"
 )
 
-const NMPATH = "org.freedesktop.NetworkManager"
+const (
+	NMPATH = "org.freedesktop.NetworkManager"
+	SYSIFPATH = "/sys/class/net/"
+)
 
 func GetIPs(interfaces ...string) ([]string, []string, error) {
 	var ipv4s, ipv6s []string
@@ -135,4 +139,25 @@ func GetRXBytesFromDbus(ifPath dbus.ObjectPath, conn *dbus.Conn) (uint64, error)
 		return 0, err
 	}
 	return variant.Value().(uint64), nil
+}
+
+func GetTxBytes(ifName string) (uint64, error) {
+	return getStatistics(SYSIFPATH + ifName, "tx_bytes")
+}
+
+func GetRxBytes(ifName string) (uint64, error) {
+	return getStatistics(SYSIFPATH + ifName, "rx_bytes")
+}
+
+func getStatistics(path string, stat string) (uint64, error) {
+	data, err := ioutil.ReadFile(path + "/statistics/" + stat)
+	if err != nil {
+		return 0, err
+	}
+	value := strings.TrimSuffix(string(data), "\n")
+	tx, err := strconv.ParseUint(value, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return tx, nil
 }
