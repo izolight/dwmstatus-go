@@ -27,10 +27,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	apPath, err := plugins.GetDbusPathForAP(ifPath, conn)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	var status status
 	for {
@@ -41,6 +37,10 @@ func main() {
 		} else {
 			status.addWithDelimiter("|", fmt.Sprintf("IP: %s", ipv4s))
 			status.addWithDelimiter("|", fmt.Sprintf("IPv6: %s", ipv6s))
+		}
+		apPath, err := plugins.GetDbusPathForAP(ifPath, conn)
+		if err != nil {
+			log.Fatal(err)
 		}
 		ssid, err := plugins.GetSSIDFromDbus(apPath, conn)
 		if err == nil {
@@ -58,7 +58,7 @@ func main() {
 		prevTx = tx
 		fmt.Println(status)
 
-		sleepUntil(5)
+		sleepUntil(1)
 	}
 }
 
