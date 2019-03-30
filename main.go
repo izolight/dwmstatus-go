@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/dustin/go-humanize"
 	"github.com/godbus/dbus"
 	"github.com/izolight/dwmstatus-go/plugins"
-	"log"
-	"time"
 )
 
 type status string
@@ -22,7 +23,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ifPath, err:= plugins.GetDbusPathForInterface(ifName, conn)
+	ifPath, err := plugins.GetDbusPathForInterface(ifName, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,7 +48,7 @@ func main() {
 		}
 		bitrate, err := plugins.GetBitrateFromDbus(ifPath, conn)
 		if err == nil {
-			status.addWithDelimiter("|", fmt.Sprintf("Speed: %s/s", humanize.Bytes(humanize.KByte *uint64(bitrate))))
+			status.addWithDelimiter("|", fmt.Sprintf("Speed: %s/s", humanize.Bytes(humanize.KByte*uint64(bitrate))))
 		}
 		rx, tx, err := plugins.GetRxTxBytes(ifName)
 		if err == nil {

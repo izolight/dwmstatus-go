@@ -3,16 +3,17 @@ package plugins
 import (
 	"bytes"
 	"fmt"
-	"github.com/godbus/dbus"
 	"io/ioutil"
 	"net"
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/godbus/dbus"
 )
 
 const (
-	NMPATH = "org.freedesktop.NetworkManager"
+	NMPATH    = "org.freedesktop.NetworkManager"
 	SYSIFPATH = "/sys/class/net/"
 )
 
@@ -50,22 +51,20 @@ func GetIPs(interfaces ...string) (IPs, IPs, error) {
 			}
 		}
 	}
-	return ipv4s, ipv6s, nil
+	return IPs(ipv4s), IPs(ipv6s), nil
 }
 
 type WifiInfo struct {
-	SSID string
-	RX int
-	TX int
-	Signal string
+	SSID    string
+	RX      int
+	TX      int
+	Signal  string
 	Bitrate string
 }
 
 func (i WifiInfo) String() string {
 	return fmt.Sprintf("SSID: %s | Signal: %s | Speed: %s", i.SSID, i.Signal, i.Bitrate)
 }
-
-
 
 func GetWifiInfo(wifi string) (WifiInfo, error) {
 	cmd := exec.Command("iw", "dev", wifi, "link")
@@ -108,7 +107,7 @@ func GetWifiInfo(wifi string) (WifiInfo, error) {
 
 func GetDbusPathForInterface(ifName string, conn *dbus.Conn) (dbus.ObjectPath, error) {
 	var path string
-	err := conn.Object(NMPATH, "/org/freedesktop/NetworkManager").Call(NMPATH + ".GetDeviceByIpIface", 0, ifName).Store(&path)
+	err := conn.Object(NMPATH, "/org/freedesktop/NetworkManager").Call(NMPATH+".GetDeviceByIpIface", 0, ifName).Store(&path)
 	if err != nil {
 		return "", err
 	}
@@ -157,19 +156,19 @@ func GetRXBytesFromDbus(ifPath dbus.ObjectPath, conn *dbus.Conn) (uint64, error)
 }
 
 func GetTxBytes(ifName string) (uint64, error) {
-	return getStatistics(SYSIFPATH + ifName, "tx_bytes")
+	return getStatistics(SYSIFPATH+ifName, "tx_bytes")
 }
 
 func GetRxBytes(ifName string) (uint64, error) {
-	return getStatistics(SYSIFPATH + ifName, "rx_bytes")
+	return getStatistics(SYSIFPATH+ifName, "rx_bytes")
 }
 
 func GetRxTxBytes(ifName string) (uint64, uint64, error) {
-	rx, err := getStatistics(SYSIFPATH + ifName, "rx_bytes")
+	rx, err := getStatistics(SYSIFPATH+ifName, "rx_bytes")
 	if err != nil {
 		return rx, 0, err
 	}
-	tx, err := getStatistics(SYSIFPATH + ifName, "tx_bytes")
+	tx, err := getStatistics(SYSIFPATH+ifName, "tx_bytes")
 	return rx, tx, err
 }
 
