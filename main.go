@@ -51,7 +51,7 @@ func main() {
 			status += fmt.Sprintf("Couldn't get ip addresses", err)
 		} else {
 			status += printIPs("IP", ipv4s)
-			status += printIPs("IPv6", ipv6s)
+			status += printIPs(" | IPv6", ipv6s)
 		}
 		ssid, err := plugins.GetSSIDFromDbus(apPath, conn)
 		if err == nil {
