@@ -35,8 +35,12 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		} else {
-			status.addWithDelimiter("|", fmt.Sprintf("IP: %s", ipv4s))
-			status.addWithDelimiter("|", fmt.Sprintf("IPv6: %s", ipv6s))
+			if len(ipv4s) > 0 {
+				status.addWithDelimiter("|", fmt.Sprintf("IP: %s", ipv4s))
+			}
+			if len(ipv6s) > 0 {
+				status.addWithDelimiter("|", fmt.Sprintf("IPv6: %s", ipv6s))
+			}
 		}
 		apPath, err := plugins.GetDbusPathForAP(ifPath, conn)
 		if err != nil {
