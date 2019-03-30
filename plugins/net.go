@@ -16,7 +16,22 @@ const (
 	SYSIFPATH = "/sys/class/net/"
 )
 
-func GetIPs(interfaces ...string) ([]string, []string, error) {
+type IPs []string
+
+func (ips IPs) String() string {
+	out := ""
+	if len(ips) > 0 {
+		for i, ip := range ips {
+			if i != 0 {
+				out += ", "
+			}
+			out += ip
+		}
+	}
+	return out
+}
+
+func GetIPs(interfaces ...string) (IPs, IPs, error) {
 	var ipv4s, ipv6s []string
 	for _, name := range interfaces {
 		netIf, err := net.InterfaceByName(name)

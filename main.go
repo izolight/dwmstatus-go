@@ -9,20 +9,6 @@ import (
 	"time"
 )
 
-func printIPs(ipType string, ips[]string) string {
-	if len(ips) > 0 {
-		status := ipType + ": "
-		for i, ip := range ips {
-			if i != 0 {
-				status += ", "
-			}
-			status += ip
-		}
-		return status
-	}
-	return ""
-}
-
 type status string
 
 func main() {
@@ -52,8 +38,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		} else {
-			status.addWithDelimiter("|", printIPs("IP", ipv4s))
-			status.addWithDelimiter("|", printIPs(" | IPv6", ipv6s))
+			status.addWithDelimiter("|", fmt.Sprintf("IP: %s", ipv4s))
+			status.addWithDelimiter("|", fmt.Sprintf("IPv6: %s", ipv6s))
 		}
 		ssid, err := plugins.GetSSIDFromDbus(apPath, conn)
 		if err == nil {
