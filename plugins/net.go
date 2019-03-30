@@ -156,24 +156,24 @@ func GetRXBytesFromDbus(ifPath dbus.ObjectPath, conn *dbus.Conn) (uint64, error)
 }
 
 func GetTxBytes(ifName string) (uint64, error) {
-	return getStatistics(SYSIFPATH+ifName, "tx_bytes")
+	return getStatistics(SYSIFPATH + ifName + "/statistics/tx_bytes")
 }
 
 func GetRxBytes(ifName string) (uint64, error) {
-	return getStatistics(SYSIFPATH+ifName, "rx_bytes")
+	return getStatistics(SYSIFPATH + ifName + "/statistics/rx_bytes")
 }
 
 func GetRxTxBytes(ifName string) (uint64, uint64, error) {
-	rx, err := getStatistics(SYSIFPATH+ifName, "rx_bytes")
+	rx, err := getStatistics(SYSIFPATH + ifName + "/statistics/rx_bytes")
 	if err != nil {
 		return rx, 0, err
 	}
-	tx, err := getStatistics(SYSIFPATH+ifName, "tx_bytes")
+	tx, err := getStatistics(SYSIFPATH + ifName + "/statistics/tx_bytes")
 	return rx, tx, err
 }
 
-func getStatistics(path string, stat string) (uint64, error) {
-	data, err := ioutil.ReadFile(path + "/statistics/" + stat)
+func getStatistics(path string) (uint64, error) {
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return 0, err
 	}
