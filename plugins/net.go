@@ -149,6 +149,15 @@ func GetRxBytes(ifName string) (uint64, error) {
 	return getStatistics(SYSIFPATH + ifName, "rx_bytes")
 }
 
+func GetRxTxBytes(ifName string) (uint64, uint64, error) {
+	rx, err := getStatistics(SYSIFPATH + ifName, "rx_bytes")
+	if err != nil {
+		return rx, 0, err
+	}
+	tx, err := getStatistics(SYSIFPATH + ifName, "tx_bytes")
+	return rx, tx, err
+}
+
 func getStatistics(path string, stat string) (uint64, error) {
 	data, err := ioutil.ReadFile(path + "/statistics/" + stat)
 	if err != nil {

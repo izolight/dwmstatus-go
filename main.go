@@ -24,8 +24,11 @@ func printIPs(ipType string, ips[]string) string {
 }
 
 func main() {
-	var prevRx, prevTx uint64
 	ifName := "wlp4s0"
+	prevRx, prevTx, err := plugins.GetRxTxBytes(ifName)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	conn, err := dbus.SystemBus()
 	if err != nil {
@@ -58,15 +61,11 @@ func main() {
 		if err == nil {
 			status += fmt.Sprintf(" | Speed: %s/s", humanize.Bytes(humanize.KByte *uint64(bitrate)))
 		}
-		rx, err := plugins.GetRxBytes(ifName)
+		rx, tx, err := plugins.GetRxTxBytes(ifName)
 		if err == nil {
-			status += fmt.Sprintf(" | Down: %s/s", humanize.Bytes(rx-prevRx))
+			status += fmt.Sprintf(" | Down: %s/s | Up: %s/s", humanize.Bytes(rx-prevRx), humanize.Bytes(tx-prevTx))
 		}
 		prevRx = rx
-		tx, err := plugins.GetTxBytes(ifName)
-		if err == nil {
-			status += fmt.Sprintf(" | Up: %s/s", humanize.Bytes(tx-prevTx))
-		}
 		prevTx = tx
 /*		wifiInfo, err := plugins.GetWifiInfo("wlp4s0")
 		if err != nil {
