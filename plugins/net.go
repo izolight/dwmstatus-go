@@ -3,7 +3,6 @@ package plugins
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"os/exec"
 	"strconv"
@@ -153,34 +152,4 @@ func GetRXBytesFromDbus(ifPath dbus.ObjectPath, conn *dbus.Conn) (uint64, error)
 		return 0, err
 	}
 	return variant.Value().(uint64), nil
-}
-
-func GetTxBytes(ifName string) (uint64, error) {
-	return getStatistics(SYSIFPATH + ifName + "/statistics/tx_bytes")
-}
-
-func GetRxBytes(ifName string) (uint64, error) {
-	return getStatistics(SYSIFPATH + ifName + "/statistics/rx_bytes")
-}
-
-func GetRxTxBytes(ifName string) (uint64, uint64, error) {
-	rx, err := getStatistics(SYSIFPATH + ifName + "/statistics/rx_bytes")
-	if err != nil {
-		return rx, 0, err
-	}
-	tx, err := getStatistics(SYSIFPATH + ifName + "/statistics/tx_bytes")
-	return rx, tx, err
-}
-
-func getStatistics(path string) (uint64, error) {
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return 0, err
-	}
-	value := strings.TrimSuffix(string(data), "\n")
-	tx, err := strconv.ParseUint(value, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return tx, nil
 }
