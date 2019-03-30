@@ -10,7 +10,8 @@ import (
 var SysPath = "/sys"
 
 const (
-	ifPath = "/class/net/"
+	ifPath      = "/class/net/"
+	batteryPath = "/class/power_supply/"
 )
 
 // Uint64 returns a uint64 read from a file (in /sys)

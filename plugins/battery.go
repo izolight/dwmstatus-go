@@ -3,36 +3,7 @@ package plugins
 import (
 	"fmt"
 	"time"
-
-	"github.com/izolight/dwmstatus-go/pkg/sys"
 )
-
-const BATTERYPATH = "/sys/class/power_supply/"
-
-func GetCurrentBatterCapacity(batteries ...string) (uint64, error) {
-	var capacity uint64
-	for _, b := range batteries {
-		cap, err := sys.Uint64(BATTERYPATH + b + "/energy_now")
-		if err != nil {
-			return capacity, err
-		}
-		capacity += cap
-	}
-	return capacity, nil
-
-}
-
-func GetMaxBatteryCapacity(batteries ...string) (uint64, error) {
-	var capacity uint64
-	for _, b := range batteries {
-		cap, err := sys.Uint64(BATTERYPATH + b + "/energy_full")
-		if err != nil {
-			return capacity, err
-		}
-		capacity += cap
-	}
-	return capacity, nil
-}
 
 func CalculateRemainingTime(current uint64, previous uint64, duration time.Duration) uint64 {
 	difference := current - previous

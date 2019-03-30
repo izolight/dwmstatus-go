@@ -6,6 +6,10 @@ import (
 	"github.com/izolight/dwmstatus-go/pkg/sys"
 )
 
+func init() {
+	sys.SysPath = "./testdata"
+}
+
 func TestUint64(t *testing.T) {
 	type args struct {
 		path string

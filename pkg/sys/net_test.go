@@ -6,10 +6,6 @@ import (
 	"github.com/izolight/dwmstatus-go/pkg/sys"
 )
 
-func init() {
-	sys.SysPath = "./testdata"
-}
-
 func TestTxBytes(t *testing.T) {
 	type args struct {
 		ifName string
