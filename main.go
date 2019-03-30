@@ -80,7 +80,12 @@ func main() {
 		}*/
 		fmt.Println(status)
 
-		var now = time.Now()
-		time.Sleep(now.Truncate(time.Second).Add(time.Second).Sub(now))
+		sleepUntil(5)
 	}
+}
+
+func sleepUntil(seconds int) {
+	sleepDuration := time.Duration(seconds) * time.Second
+	now := time.Now()
+	time.Sleep(now.Truncate(sleepDuration).Add(sleepDuration).Sub(now))
 }
