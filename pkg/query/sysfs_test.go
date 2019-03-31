@@ -56,7 +56,7 @@ func TestSysFs_RefreshCurrentBatteryCapacity(t *testing.T) {
 					tt.args.battery: &query.BatteryInfo{},
 				},
 			}
-			if err := s.RefreshCurrentBatteryCapacity(tt.args.battery); (err != nil) != tt.wantErr {
+			if err := s.RefreshCurrentBatteryCapacity(); (err != nil) != tt.wantErr {
 				t.Errorf("SysFs.RefreshCurrentBatteryCapacity() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			got := s.BatteryInfo[tt.args.battery].CurrentBatteryCapacity
@@ -87,7 +87,7 @@ func TestSysFs_RefreshMaxBatteryCapacity(t *testing.T) {
 					tt.args.battery: &query.BatteryInfo{},
 				},
 			}
-			if err := s.RefreshMaxBatteryCapacity(tt.args.battery); (err != nil) != tt.wantErr {
+			if err := s.RefreshMaxBatteryCapacity(); (err != nil) != tt.wantErr {
 				t.Errorf("SysFs.RefreshMaxBatteryCapacity() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			got := s.BatteryInfo[tt.args.battery].MaxBatteryCapacity
@@ -117,7 +117,7 @@ func TestSysFs_RefreshTxBytes(t *testing.T) {
 					tt.args.ifName: &query.InterfaceInfo{},
 				},
 			}
-			if err := s.RefreshTxBytes(tt.args.ifName); (err != nil) != tt.wantErr {
+			if err := s.RefreshTxBytes(); (err != nil) != tt.wantErr {
 				t.Errorf("SysFs.RefreshTxBytes() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			got := s.InterfaceInfo[tt.args.ifName].TxBytes
@@ -148,7 +148,7 @@ func TestSysFs_RefreshRxBytes(t *testing.T) {
 					tt.args.ifName: &query.InterfaceInfo{},
 				},
 			}
-			if err := s.RefreshRxBytes(tt.args.ifName); (err != nil) != tt.wantErr {
+			if err := s.RefreshRxBytes(); (err != nil) != tt.wantErr {
 				t.Errorf("SysFs.RefreshRxBytes() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			got := s.InterfaceInfo[tt.args.ifName].RxBytes
@@ -180,7 +180,7 @@ func TestSysFs_RefreshRxTxBytes(t *testing.T) {
 					tt.args.ifName: &query.InterfaceInfo{},
 				},
 			}
-			if err := s.RefreshRxTxBytes(tt.args.ifName); (err != nil) != tt.wantErr {
+			if err := s.RefreshRxTxBytes(); (err != nil) != tt.wantErr {
 				t.Errorf("SysFs.RefreshRxTxBytes() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			got := s.InterfaceInfo[tt.args.ifName].RxBytes

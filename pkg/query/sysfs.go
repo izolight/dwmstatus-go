@@ -15,6 +15,7 @@ const (
 )
 
 type SysFs struct {
+	Plugins       map[string]func() error
 	BatteryInfo   map[string]*BatteryInfo
 	InterfaceInfo map[string]*InterfaceInfo
 }
@@ -38,8 +39,9 @@ func ReadUint64(path string) (uint64, error) {
 	return value, nil
 }
 
-func (s *SysFs) RefreshCurrentBatteryCapacity(batteries ...string) error {
-	for _, b := range batteries {
+// RefreshCurrentBatteryCapacity refreshes the current battery capacity from sysfs
+func (s *SysFs) RefreshCurrentBatteryCapacity() error {
+	for b := range s.BatteryInfo {
 		cap, err := ReadUint64(SysPath + batteryPath + b + "/energy_now")
 		if err != nil {
 			return err
@@ -50,8 +52,9 @@ func (s *SysFs) RefreshCurrentBatteryCapacity(batteries ...string) error {
 
 }
 
-func (s *SysFs) RefreshMaxBatteryCapacity(batteries ...string) error {
-	for _, b := range batteries {
+// RefreshMaxBatteryCapacity refreshes the max battery capacity from sysfs
+func (s *SysFs) RefreshMaxBatteryCapacity() error {
+	for b := range s.BatteryInfo {
 		cap, err := ReadUint64(SysPath + batteryPath + b + "/energy_full")
 		if err != nil {
 			return err
@@ -61,33 +64,37 @@ func (s *SysFs) RefreshMaxBatteryCapacity(batteries ...string) error {
 	return nil
 }
 
-// RefreshTxBytes returns the transmitted bytes for an interface
-func (s *SysFs) RefreshTxBytes(ifName string) error {
-	txBytes, err := ReadUint64(SysPath + ifPath + ifName + "/statistics/tx_bytes")
-	if err != nil {
-		return err
+// RefreshTxBytes refreshes the transmitted bytes from sysfs
+func (s *SysFs) RefreshTxBytes() error {
+	for i := range s.InterfaceInfo {
+		txBytes, err := ReadUint64(SysPath + ifPath + i + "/statistics/tx_bytes")
+		if err != nil {
+			return err
+		}
+		s.InterfaceInfo[i].TxBytes = txBytes
 	}
-	s.InterfaceInfo[ifName].TxBytes = txBytes
 	return nil
 }
 
 // RefreshRxBytes returns the received bytes for an interface
-func (s *SysFs) RefreshRxBytes(ifName string) error {
-	rxBytes, err := ReadUint64(SysPath + ifPath + ifName + "/statistics/rx_bytes")
-	if err != nil {
-		return err
+func (s *SysFs) RefreshRxBytes() error {
+	for i := range s.InterfaceInfo {
+		rxBytes, err := ReadUint64(SysPath + ifPath + i + "/statistics/rx_bytes")
+		if err != nil {
+			return err
+		}
+		s.InterfaceInfo[i].RxBytes = rxBytes
 	}
-	s.InterfaceInfo[ifName].RxBytes = rxBytes
 	return nil
 }
 
 // RefreshRxTxBytes combines the Rx and Tx Bytes functions
-func (s *SysFs) RefreshRxTxBytes(ifName string) error {
-	err := s.RefreshRxBytes(ifName)
+func (s *SysFs) RefreshRxTxBytes() error {
+	err := s.RefreshRxBytes()
 	if err != nil {
 		return err
 	}
-	err = s.RefreshTxBytes(ifName)
+	err = s.RefreshTxBytes()
 	if err != nil {
 		return err
 	}
