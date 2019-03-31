@@ -7,8 +7,8 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/izolight/dwmstatus-go/pkg/dbus"
+	"github.com/izolight/dwmstatus-go/pkg/stdlib"
 	"github.com/izolight/dwmstatus-go/pkg/sysfs"
-	"github.com/izolight/dwmstatus-go/plugins"
 )
 
 type status string
@@ -28,7 +28,7 @@ func main() {
 	var status status
 	for {
 		status = ""
-		ipv4s, ipv6s, err := plugins.GetIPs(ifName, "enp0s31f6")
+		ipv4s, ipv6s, err := stdlib.GetIPs(ifName, "enp0s31f6")
 		if err != nil {
 			log.Fatal(err)
 		} else {
