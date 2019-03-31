@@ -7,8 +7,6 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-
-	"github.com/godbus/dbus"
 )
 
 const (
@@ -102,54 +100,4 @@ func GetWifiInfo(wifi string) (WifiInfo, error) {
 			info.Bitrate = bitrate
 		}
 	}
-}
-
-func GetDbusPathForInterface(ifName string, conn *dbus.Conn) (dbus.ObjectPath, error) {
-	var path string
-	err := conn.Object(NMPATH, "/org/freedesktop/NetworkManager").Call(NMPATH+".GetDeviceByIpIface", 0, ifName).Store(&path)
-	if err != nil {
-		return "", err
-	}
-	return dbus.ObjectPath(path), nil
-}
-
-func GetDbusPathForAP(ifPath dbus.ObjectPath, conn *dbus.Conn) (dbus.ObjectPath, error) {
-	variant, err := conn.Object(NMPATH, ifPath).GetProperty(NMPATH + ".Device.Wireless.ActiveAccessPoint")
-	if err != nil {
-		return "", err
-	}
-	return variant.Value().(dbus.ObjectPath), nil
-}
-
-func GetSSIDFromDbus(apPath dbus.ObjectPath, conn *dbus.Conn) (string, error) {
-	variant, err := conn.Object(NMPATH, dbus.ObjectPath(apPath)).GetProperty(NMPATH + ".AccessPoint.Ssid")
-	if err != nil {
-		return "", err
-	}
-	ssid := variant.Value().([]uint8)
-	return string(ssid), nil
-}
-
-func GetBitrateFromDbus(ifPath dbus.ObjectPath, conn *dbus.Conn) (uint32, error) {
-	variant, err := conn.Object(NMPATH, dbus.ObjectPath(ifPath)).GetProperty(NMPATH + ".Device.Wireless.Bitrate")
-	if err != nil {
-		return 0, err
-	}
-	return variant.Value().(uint32), nil
-}
-
-func GetTXBytesFromDbus(ifPath dbus.ObjectPath, conn *dbus.Conn) (uint64, error) {
-	variant, err := conn.Object(NMPATH, dbus.ObjectPath(ifPath)).GetProperty(NMPATH + ".Device.Statistics.TxBytes")
-	if err != nil {
-		return 0, err
-	}
-	return variant.Value().(uint64), nil
-}
-
-func GetRXBytesFromDbus(ifPath dbus.ObjectPath, conn *dbus.Conn) (uint64, error) {
-	variant, err := conn.Object(NMPATH, dbus.ObjectPath(ifPath)).GetProperty(NMPATH + ".Device.Statistics.RxBytes")
-	if err != nil {
-		return 0, err
-	}
-	return variant.Value().(uint64), nil
 }

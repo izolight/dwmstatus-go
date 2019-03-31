@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/godbus/dbus"
+	"github.com/izolight/dwmstatus-go/pkg/dbus"
 	"github.com/izolight/dwmstatus-go/pkg/sysfs"
 	"github.com/izolight/dwmstatus-go/plugins"
 )
@@ -20,11 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn, err := dbus.SystemBus()
-	if err != nil {
-		log.Fatal(err)
-	}
-	ifPath, err := plugins.GetDbusPathForInterface(ifName, conn)
+	ifPath, err := dbus.PathForInterface(ifName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,15 +39,15 @@ func main() {
 				status.addWithDelimiter("|", fmt.Sprintf("IPv6: %s", ipv6s))
 			}
 		}
-		apPath, err := plugins.GetDbusPathForAP(ifPath, conn)
+		apPath, err := dbus.PathForAccessPoint(ifPath)
 		if err != nil {
 			log.Fatal(err)
 		}
-		ssid, err := plugins.GetSSIDFromDbus(apPath, conn)
+		ssid, err := dbus.SSID(apPath)
 		if err == nil {
 			status.addWithDelimiter("|", fmt.Sprintf("SSID: %s", ssid))
 		}
-		bitrate, err := plugins.GetBitrateFromDbus(ifPath, conn)
+		bitrate, err := dbus.WifiLinkSpeed(ifPath)
 		if err == nil {
 			status.addWithDelimiter("|", fmt.Sprintf("Speed: %s/s", humanize.Bytes(humanize.KByte*uint64(bitrate))))
 		}
