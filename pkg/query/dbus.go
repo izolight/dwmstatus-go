@@ -1,9 +1,24 @@
 package query
 
-import "github.com/godbus/dbus"
+import (
+	"errors"
+	"fmt"
+
+	"github.com/godbus/dbus"
+)
 
 type Dbus struct {
-	conn *dbus.Conn
+	conn          *dbus.Conn
+	InterfaceInfo map[string]*InterfaceInfo
+}
+
+type InterfaceInfo struct {
+	SSID      string
+	LinkSpeed uint32
+	TxBytes   uint64
+	RxBytes   uint64
+	ifPath    dbus.ObjectPath
+	apPath    dbus.ObjectPath
 }
 
 const (
@@ -19,52 +34,101 @@ func (d *Dbus) Connect() error {
 	return nil
 }
 
-func (d *Dbus) PathForInterface(ifName string) (dbus.ObjectPath, error) {
+func (d *Dbus) InterfacePath(ifName string) error {
 	path := ""
 	err := d.conn.Object(NMPATH, "/"+NMPATH).Call(NMPATH+".GetDeviceByIpIface", 0, ifName).Store(&path)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return dbus.ObjectPath(path), nil
+	_, ok := d.InterfaceInfo[ifName]
+	if !ok {
+		d.InterfaceInfo[ifName] = &InterfaceInfo{}
+	}
+	d.InterfaceInfo[ifName].ifPath = dbus.ObjectPath(path)
+	return nil
 }
 
-func (d *Dbus) PathForAccessPoint(ifPath dbus.ObjectPath) (dbus.ObjectPath, error) {
-	variant, err := d.conn.Object(NMPATH, ifPath).GetProperty(NMPATH + ".Device.Wireless.ActiveAccessPoint")
-	if err != nil {
-		return "", err
+func (d *Dbus) AccessPointPath(ifName string) error {
+	_, ok := d.InterfaceInfo[ifName]
+	if !ok || ok && d.InterfaceInfo[ifName].ifPath == "" {
+		return errors.New("You need to set the Interface Path first")
 	}
-	return variant.Value().(dbus.ObjectPath), nil
+	variant, err := d.conn.Object(NMPATH, d.InterfaceInfo[ifName].ifPath).GetProperty(NMPATH + ".Device.Wireless.ActiveAccessPoint")
+	if err != nil {
+		return err
+	}
+	apPath, ok := variant.Value().(dbus.ObjectPath)
+	if !ok {
+		return fmt.Errorf("Couldn't get valid ObjectPath for ap: %s", variant.Value())
+	}
+	d.InterfaceInfo[ifName].apPath = apPath
+	return nil
 }
 
-func (d *Dbus) SSID(apPath dbus.ObjectPath) (string, error) {
-	variant, err := d.conn.Object(NMPATH, dbus.ObjectPath(apPath)).GetProperty(NMPATH + ".AccessPoint.Ssid")
-	if err != nil {
-		return "", err
+func (d *Dbus) RefreshSSID(ifName string) error {
+	_, ok := d.InterfaceInfo[ifName]
+	if !ok || ok && d.InterfaceInfo[ifName].apPath == "" {
+		return errors.New("You need to set the Access Point Path first")
 	}
-	ssid := variant.Value().([]uint8)
-	return string(ssid), nil
+	variant, err := d.conn.Object(NMPATH, dbus.ObjectPath(d.InterfaceInfo[ifName].apPath)).GetProperty(NMPATH + ".AccessPoint.Ssid")
+	if err != nil {
+		return err
+	}
+	ssid, ok := variant.Value().([]uint8)
+	if !ok {
+		return fmt.Errorf("Couldn't get valid SSID: %s", variant.Value())
+	}
+	d.InterfaceInfo[ifName].SSID = string(ssid)
+	return nil
 }
 
-func (d *Dbus) WifiLinkSpeed(ifPath dbus.ObjectPath) (uint32, error) {
-	variant, err := d.conn.Object(NMPATH, dbus.ObjectPath(ifPath)).GetProperty(NMPATH + ".Device.Wireless.Bitrate")
-	if err != nil {
-		return 0, err
+func (d *Dbus) WifiLinkSpeed(ifName string) error {
+	_, ok := d.InterfaceInfo[ifName]
+	if !ok || ok && d.InterfaceInfo[ifName].ifPath == "" {
+		return errors.New("You need to set the InterfacePath Path first")
 	}
-	return variant.Value().(uint32), nil
+	variant, err := d.conn.Object(NMPATH, dbus.ObjectPath(d.InterfaceInfo[ifName].ifPath)).GetProperty(NMPATH + ".Device.Wireless.Bitrate")
+	if err != nil {
+		return err
+	}
+	linkSpeed, ok := variant.Value().(uint32)
+	if !ok {
+		return fmt.Errorf("Couldn't get valid LinkSpeed: %s", variant.Value())
+	}
+	d.InterfaceInfo[ifName].LinkSpeed = linkSpeed
+	return nil
 }
 
-func (d *Dbus) TxBytes(ifPath dbus.ObjectPath) (uint64, error) {
-	variant, err := d.conn.Object(NMPATH, dbus.ObjectPath(ifPath)).GetProperty(NMPATH + ".Device.Statistics.TxBytes")
-	if err != nil {
-		return 0, err
+func (d *Dbus) TxBytes(ifName string) error {
+	_, ok := d.InterfaceInfo[ifName]
+	if !ok || ok && d.InterfaceInfo[ifName].ifPath == "" {
+		return errors.New("You need to set the InterfacePath Path first")
 	}
-	return variant.Value().(uint64), nil
+	variant, err := d.conn.Object(NMPATH, dbus.ObjectPath(d.InterfaceInfo[ifName].ifPath)).GetProperty(NMPATH + ".Device.Statistics.TxBytes")
+	if err != nil {
+		return err
+	}
+	txBytes, ok := variant.Value().(uint64)
+	if !ok {
+		return fmt.Errorf("Couldn't get valid TxBytes: %s", variant.Value())
+	}
+	d.InterfaceInfo[ifName].TxBytes = txBytes
+	return nil
 }
 
-func (d *Dbus) RxBytes(ifPath dbus.ObjectPath) (uint64, error) {
-	variant, err := d.conn.Object(NMPATH, dbus.ObjectPath(ifPath)).GetProperty(NMPATH + ".Device.Statistics.RxBytes")
-	if err != nil {
-		return 0, err
+func (d *Dbus) RxBytes(ifName string) error {
+	_, ok := d.InterfaceInfo[ifName]
+	if !ok || ok && d.InterfaceInfo[ifName].ifPath == "" {
+		return errors.New("You need to set the InterfacePath Path first")
 	}
-	return variant.Value().(uint64), nil
+	variant, err := d.conn.Object(NMPATH, dbus.ObjectPath(d.InterfaceInfo[ifName].ifPath)).GetProperty(NMPATH + ".Device.Statistics.RxBytes")
+	if err != nil {
+		return err
+	}
+	rxBytes, ok := variant.Value().(uint64)
+	if !ok {
+		return fmt.Errorf("Couldn't get valid RxBytes: %s", variant.Value())
+	}
+	d.InterfaceInfo[ifName].RxBytes = rxBytes
+	return nil
 }
