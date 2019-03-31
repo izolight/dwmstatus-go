@@ -1,17 +1,8 @@
 package plugins
 
 import (
-	"bytes"
-	"fmt"
 	"net"
-	"os/exec"
-	"strconv"
 	"strings"
-)
-
-const (
-	NMPATH    = "org.freedesktop.NetworkManager"
-	SYSIFPATH = "/sys/class/net/"
 )
 
 type IPs []string
@@ -49,55 +40,4 @@ func GetIPs(interfaces ...string) (IPs, IPs, error) {
 		}
 	}
 	return IPs(ipv4s), IPs(ipv6s), nil
-}
-
-type WifiInfo struct {
-	SSID    string
-	RX      int
-	TX      int
-	Signal  string
-	Bitrate string
-}
-
-func (i WifiInfo) String() string {
-	return fmt.Sprintf("SSID: %s | Signal: %s | Speed: %s", i.SSID, i.Signal, i.Bitrate)
-}
-
-func GetWifiInfo(wifi string) (WifiInfo, error) {
-	cmd := exec.Command("iw", "dev", wifi, "link")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	info := WifiInfo{}
-	if err != nil {
-		return info, err
-	}
-
-	for {
-		line, err := out.ReadString('\n')
-		if err != nil {
-			return info, nil
-		}
-		line = strings.TrimSpace(strings.TrimSuffix(line, "\n"))
-		if strings.Contains(line, "SSID") {
-			info.SSID = strings.Trim(line, "SSID: ")
-		} else if strings.Contains(line, "signal") {
-			info.Signal = strings.Trim(line, "signal: ")
-		} else if strings.Contains(line, "RX") {
-			rx := strings.TrimPrefix(strings.Split(line, " bytes")[0], "RX: ")
-			info.RX, err = strconv.Atoi(rx)
-			if err != nil {
-				return info, err
-			}
-		} else if strings.Contains(line, "TX") {
-			tx := strings.TrimPrefix(strings.Split(line, " bytes")[0], "TX: ")
-			info.TX, err = strconv.Atoi(tx)
-			if err != nil {
-				return info, err
-			}
-		} else if strings.Contains(line, "rx bitrate") {
-			bitrate := strings.TrimPrefix(strings.Split(line, " VHT")[0], "rx bitrate: ")
-			info.Bitrate = bitrate
-		}
-	}
 }
