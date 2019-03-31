@@ -5,30 +5,22 @@ import (
 	"log"
 	"time"
 
-	"github.com/dustin/go-humanize"
-	"github.com/izolight/dwmstatus-go/pkg/dbus"
-	"github.com/izolight/dwmstatus-go/pkg/stdlib"
-	"github.com/izolight/dwmstatus-go/pkg/sysfs"
+	//"github.com/izolight/dwmstatus-go/pkg/dbus"
+	//"github.com/izolight/dwmstatus-go/pkg/stdlib"
+
+	//"github.com/izolight/dwmstatus-go/pkg/sysfs"
+	"github.com/prometheus/procfs/sysfs"
 )
 
 type status string
 
 func main() {
-	ifName := "wlp4s0"
-	prevRx, prevTx, err := sysfs.RxTxBytes(ifName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ifPath, err := dbus.PathForInterface(ifName)
-	if err != nil {
-		log.Fatal(err)
-	}
+	interfaces := []string{"enp4s0", "enp5s0"}
 
 	var status status
 	for {
 		status = ""
-		ipv4s, ipv6s, err := stdlib.GetIPs(ifName, "enp0s31f6")
+		/* ipv4s, ipv6s, err := stdlib.GetIPs(ifName, "enp0s31f6")
 		if err != nil {
 			log.Fatal(err)
 		} else {
@@ -56,7 +48,16 @@ func main() {
 			status.addWithDelimiter("|", fmt.Sprintf("Down: %s/s Up: %s/s", humanize.Bytes(rx-prevRx), humanize.Bytes(tx-prevTx)))
 		}
 		prevRx = rx
-		prevTx = tx
+		prevTx = tx */
+		netClass, err := sysfs.NewNetClass()
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, i := range interfaces {
+			n := netClass[i]
+			status.addWithDelimiter("|", fmt.Sprintf("%s: %s %d", i, n.OperState, *n.Speed))
+		}
+
 		fmt.Println(status)
 
 		sleepUntil(1)
