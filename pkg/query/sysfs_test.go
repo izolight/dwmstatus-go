@@ -194,3 +194,39 @@ func TestSysFs_RefreshRxTxBytes(t *testing.T) {
 		})
 	}
 }
+
+func TestSysFs_RefreshAll(t *testing.T) {
+	type fields struct {
+		BatteryInfo   map[string]*query.BatteryInfo
+		InterfaceInfo map[string]*query.InterfaceInfo
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr bool
+	}{
+		{
+			"test",
+			fields{
+				BatteryInfo: map[string]*query.BatteryInfo{
+					"BAT0": &query.BatteryInfo{},
+				},
+				InterfaceInfo: map[string]*query.InterfaceInfo{
+					"fake0": &query.InterfaceInfo{},
+				},
+			},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &query.SysFs{
+				BatteryInfo:   tt.fields.BatteryInfo,
+				InterfaceInfo: tt.fields.InterfaceInfo,
+			}
+			if err := s.RefreshAll(); (err != nil) != tt.wantErr {
+				t.Errorf("SysFs.RefreshAll() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}

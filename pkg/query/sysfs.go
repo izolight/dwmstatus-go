@@ -15,7 +15,6 @@ const (
 )
 
 type SysFs struct {
-	Plugins       map[string]func() error
 	BatteryInfo   map[string]*BatteryInfo
 	InterfaceInfo map[string]*InterfaceInfo
 }
@@ -23,6 +22,27 @@ type SysFs struct {
 type BatteryInfo struct {
 	MaxBatteryCapacity     uint64
 	CurrentBatteryCapacity uint64
+}
+
+// RefreshAll refreshes data from all registered plugins
+func (s *SysFs) RefreshAll() error {
+	err := s.RefreshCurrentBatteryCapacity()
+	if err != nil {
+		return err
+	}
+	err = s.RefreshMaxBatteryCapacity()
+	if err != nil {
+		return err
+	}
+	err = s.RefreshTxBytes()
+	if err != nil {
+		return err
+	}
+	err = s.RefreshRxBytes()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ReadUint64 returns a uint64 read from a file (in /sys)
