@@ -1,4 +1,4 @@
-package tools
+package query
 
 import (
 	"bytes"
@@ -11,6 +11,10 @@ import (
 const (
 	iwBinary = "iw"
 )
+
+type Tools struct {
+	WifiInfo *WifiInfo
+}
 
 type WifiInfo struct {
 	SSID    string
