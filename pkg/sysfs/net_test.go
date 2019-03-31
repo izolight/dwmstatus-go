@@ -1,9 +1,9 @@
-package sys_test
+package sysfs_test
 
 import (
 	"testing"
 
-	"github.com/izolight/dwmstatus-go/pkg/sys"
+	"github.com/izolight/dwmstatus-go/pkg/sysfs"
 )
 
 func TestTxBytes(t *testing.T) {
@@ -21,7 +21,7 @@ func TestTxBytes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := sys.TxBytes(tt.args.ifName)
+			got, err := sysfs.TxBytes(tt.args.ifName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TxBytes() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -48,7 +48,7 @@ func TestRxBytes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := sys.RxBytes(tt.args.ifName)
+			got, err := sysfs.RxBytes(tt.args.ifName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RxBytes() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -76,7 +76,7 @@ func TestRxTxBytes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := sys.RxTxBytes(tt.args.ifName)
+			got, got1, err := sysfs.RxTxBytes(tt.args.ifName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RxTxBytes() error = %v, wantErr %v", err, tt.wantErr)
 				return

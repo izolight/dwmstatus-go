@@ -1,9 +1,9 @@
-package sys_test
+package sysfs_test
 
 import (
 	"testing"
 
-	"github.com/izolight/dwmstatus-go/pkg/sys"
+	"github.com/izolight/dwmstatus-go/pkg/sysfs"
 )
 
 func TestCurrentBatterCapacity(t *testing.T) {
@@ -21,7 +21,7 @@ func TestCurrentBatterCapacity(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := sys.CurrentBatteryCapacity(tt.args.battery)
+			got, err := sysfs.CurrentBatteryCapacity(tt.args.battery)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CurrentBatteryCapacity() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -48,7 +48,7 @@ func TestMaxBatteryCapacity(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := sys.MaxBatteryCapacity(tt.args.battery)
+			got, err := sysfs.MaxBatteryCapacity(tt.args.battery)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MaxBatteryCapacity() error = %v, wantErr %v", err, tt.wantErr)
 				return

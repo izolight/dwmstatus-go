@@ -1,13 +1,13 @@
-package sys_test
+package sysfs_test
 
 import (
 	"testing"
 
-	"github.com/izolight/dwmstatus-go/pkg/sys"
+	"github.com/izolight/dwmstatus-go/pkg/sysfs"
 )
 
 func init() {
-	sys.SysPath = "./testdata"
+	sysfs.SysPath = "./testdata"
 }
 
 func TestUint64(t *testing.T) {
@@ -24,7 +24,7 @@ func TestUint64(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := sys.Uint64(tt.args.path)
+			got, err := sysfs.Uint64(tt.args.path)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Uint64() error = %v, wantErr %v", err, tt.wantErr)
 				return

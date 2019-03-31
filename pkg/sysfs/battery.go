@@ -1,4 +1,4 @@
-package sys
+package sysfs
 
 func CurrentBatteryCapacity(batteries ...string) (uint64, error) {
 	var capacity uint64

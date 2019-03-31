@@ -7,7 +7,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/godbus/dbus"
-	"github.com/izolight/dwmstatus-go/pkg/sys"
+	"github.com/izolight/dwmstatus-go/pkg/sysfs"
 	"github.com/izolight/dwmstatus-go/plugins"
 )
 
@@ -15,7 +15,7 @@ type status string
 
 func main() {
 	ifName := "wlp4s0"
-	prevRx, prevTx, err := sys.RxTxBytes(ifName)
+	prevRx, prevTx, err := sysfs.RxTxBytes(ifName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,7 +55,7 @@ func main() {
 		if err == nil {
 			status.addWithDelimiter("|", fmt.Sprintf("Speed: %s/s", humanize.Bytes(humanize.KByte*uint64(bitrate))))
 		}
-		rx, tx, err := sys.RxTxBytes(ifName)
+		rx, tx, err := sysfs.RxTxBytes(ifName)
 		if err == nil {
 			status.addWithDelimiter("|", fmt.Sprintf("Down: %s/s Up: %s/s", humanize.Bytes(rx-prevRx), humanize.Bytes(tx-prevTx)))
 		}

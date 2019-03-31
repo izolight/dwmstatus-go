@@ -1,4 +1,4 @@
-package sys
+package sysfs
 
 import (
 	"io/ioutil"

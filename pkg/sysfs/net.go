@@ -1,4 +1,4 @@
-package sys
+package sysfs
 
 // TxBytes returns the transmitted bytes for an interface
 func TxBytes(ifName string) (uint64, error) {
