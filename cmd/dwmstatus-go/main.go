@@ -5,7 +5,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/dustin/go-humanize"
+
 	"github.com/mdlayher/wifi"
+	"github.com/prometheus/procfs"
 )
 
 var config struct {
@@ -43,7 +46,7 @@ func main() {
 	}
 
 	var status status
-
+	var prevRx, prevTx uint64
 	for {
 		status = ""
 		bss, err := wifiClient.BSS(wifiInterface)
@@ -55,6 +58,18 @@ func main() {
 			log.Println(err)
 		}
 		status.addWithDelimiter("|", fmt.Sprintf("SSID: %s %d%%(%ddBm)", bss.SSID, wifiPercentage(stationInfo[0].Signal), stationInfo[0].Signal))
+
+		nd, err := procfs.NewNetDev()
+		if err != nil {
+			log.Panicln(err)
+		}
+
+		total := nd.Total()
+		rx, tx := total.RxBytes, total.TxBytes
+		status.addWithDelimiter("|", fmt.Sprintf("U:%s/s", humanize.Bytes(tx-prevTx)))
+		status.addWithDelimiter("|", fmt.Sprintf("D:%s/s", humanize.Bytes(rx-prevRx)))
+		prevRx, prevTx = rx, tx
+
 		fmt.Println(status)
 		sleepUntil(1)
 	}
