@@ -8,28 +8,56 @@ import (
 	"github.com/mdlayher/wifi"
 )
 
+var config struct {
+	wifiInterface string
+	lanInterfaces []string
+	vpnInterfaces []string
+	allInterfaces []string
+	batteries     []string
+}
+
 type status string
 
 func main() {
-	//interfaces := []string{"enp4s0", "enp5s0"}
+	config.wifiInterface = "wlp4s0"
+	config.lanInterfaces = []string{"enp0s31f6"}
+	config.vpnInterfaces = []string{"home", "remote"}
+
+	config.allInterfaces = append(config.allInterfaces, config.wifiInterface)
+	config.allInterfaces = append(config.allInterfaces, config.lanInterfaces...)
+	config.allInterfaces = append(config.allInterfaces, config.vpnInterfaces...)
+
 	wifiClient, err := wifi.New()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	interfaces, err := wifiClient.Interfaces()
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	wifiInterface := &wifi.Interface{}
 	for _, ifi := range interfaces {
-		fmt.Printf("%s: %s, %d\n", ifi.Name, ifi.HardwareAddr, ifi.Frequency)
-		si, err := wifiClient.StationInfo(ifi)
-		if err == nil {
-			fmt.Printf("%v\n", si)
+		if ifi.Name == config.wifiInterface {
+			wifiInterface = ifi
 		}
 	}
 
+	var status status
+
+	for {
+		status = ""
+		bss, err := wifiClient.BSS(wifiInterface)
+		if err != nil {
+			log.Println(err)
+		}
+		stationInfo, err := wifiClient.StationInfo(wifiInterface)
+		if err != nil {
+			log.Println(err)
+		}
+		status.addWithDelimiter("|", fmt.Sprintf("SSID: %s %d%%(%ddBm)", bss.SSID, wifiPercentage(stationInfo[0].Signal), stationInfo[0].Signal))
+		fmt.Println(status)
+		sleepUntil(1)
+	}
 	/*
 
 		var status status
@@ -48,6 +76,15 @@ func main() {
 
 			sleepUntil(1)
 		} */
+}
+
+func wifiPercentage(signal int) int {
+	if signal <= -100 {
+		return 0
+	} else if signal >= -50 {
+		return 100
+	}
+	return 2 * (signal + 100)
 }
 
 func sleepUntil(seconds int) {
