@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/prometheus/procfs/sysfs"
+
 	"github.com/dustin/go-humanize"
 
 	"github.com/mdlayher/wifi"
@@ -25,6 +27,7 @@ func main() {
 	config.wifiInterface = "wlp4s0"
 	config.lanInterfaces = []string{"enp0s31f6"}
 	config.vpnInterfaces = []string{"home", "remote"}
+	config.batteries = []string{"BAT0", "BAT1"}
 
 	config.allInterfaces = append(config.allInterfaces, config.wifiInterface)
 	config.allInterfaces = append(config.allInterfaces, config.lanInterfaces...)
@@ -47,8 +50,13 @@ func main() {
 
 	var status status
 	var prevRx, prevTx uint64
+	var prevEnergy int64
+	var remaining int64
+	nextMeasurement := time.Now().Truncate(time.Second).Add(5 * time.Second)
 	for {
 		status = ""
+
+		// wifi stuff
 		bss, err := wifiClient.BSS(wifiInterface)
 		if err != nil {
 			log.Println(err)
@@ -59,38 +67,43 @@ func main() {
 		}
 		status.addWithDelimiter("|", fmt.Sprintf("SSID: %s %d%%(%ddBm)", bss.SSID, wifiPercentage(stationInfo[0].Signal), stationInfo[0].Signal))
 
+		// transfer stats
 		nd, err := procfs.NewNetDev()
 		if err != nil {
-			log.Panicln(err)
+			log.Println(err)
 		}
-
 		total := nd.Total()
 		rx, tx := total.RxBytes, total.TxBytes
 		status.addWithDelimiter("|", fmt.Sprintf("U:%s/s", humanize.Bytes(tx-prevTx)))
 		status.addWithDelimiter("|", fmt.Sprintf("D:%s/s", humanize.Bytes(rx-prevRx)))
 		prevRx, prevTx = rx, tx
 
+		// battery stats
+		psc, err := sysfs.NewPowerSupplyClass()
+		if err != nil {
+			log.Println(err)
+		}
+		var energyNow, energyFull, EnergyFullDesign int64
+		for _, b := range config.batteries {
+			bat, ok := psc[b]
+			if !ok {
+				continue
+			}
+			energyNow += *bat.EnergyNow
+			energyFull += *bat.EnergyFull
+			EnergyFullDesign += *bat.EnergyFullDesign
+		}
+		measure := time.Now().Truncate(time.Second)
+		if measure.UnixNano() == nextMeasurement.UnixNano() {
+			nextMeasurement = nextMeasurement.Add(5 * time.Second)
+			remaining = calculateRemainingTime(energyNow, prevEnergy, energyFull)
+			prevEnergy = energyNow
+		}
+		status.addWithDelimiter("|", fmt.Sprintf("BAT: %.1f%% %dMin", (float64(energyNow)/float64(energyFull))*100, remaining))
+
 		fmt.Println(status)
 		sleepUntil(1)
 	}
-	/*
-
-		var status status
-		for {
-			status = ""
-			netClass, err := sysfs.NewNetClass()
-			if err != nil {
-				log.Fatal(err)
-			}
-			for _, i := range interfaces {
-				n := netClass[i]
-				status.addWithDelimiter("|", fmt.Sprintf("%s: %s %d", i, n.OperState, *n.Speed))
-			}
-
-			fmt.Println(status)
-
-			sleepUntil(1)
-		} */
 }
 
 func wifiPercentage(signal int) int {
@@ -100,6 +113,20 @@ func wifiPercentage(signal int) int {
 		return 100
 	}
 	return 2 * (signal + 100)
+}
+
+func calculateRemainingTime(energyNow int64, energyPrev int64, EnergyFull int64) int64 {
+	remainingEnergy := EnergyFull - energyNow
+	charged := energyNow - energyPrev
+	if charged == 0 {
+		return 0
+	} else if charged > 0 {
+		minutes := float64(remainingEnergy) / float64(charged) / 60 * 5
+		return int64(minutes)
+	} else {
+		minutes := float64(energyNow) / float64(charged) / 60 * 5
+		return int64(minutes)
+	}
 }
 
 func sleepUntil(seconds int) {
