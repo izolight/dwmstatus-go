@@ -21,12 +21,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(interfaces)
 
 	for _, ifi := range interfaces {
-		stationInfos, err := wifiClient.StationInfo(ifi)
+		fmt.Printf("%s: %s, %d\n", ifi.Name, ifi.HardwareAddr, ifi.Frequency)
+		si, err := wifiClient.StationInfo(ifi)
 		if err == nil {
-			fmt.Println(stationInfos)
+			fmt.Printf("%v\n", si)
 		}
 	}
 
