@@ -23,12 +23,13 @@ func main() {
 	}
 	fmt.Println(interfaces)
 
-	stationInfos, err := wifiClient.StationInfo(interfaces[0])
-	if err != nil {
-		log.Fatal(err)
+	for _, ifi := range interfaces {
+		stationInfos, err := wifiClient.StationInfo(ifi)
+		if err == nil {
+			fmt.Println(stationInfos)
+		}
 	}
 
-	fmt.Println(stationInfos)
 	/*
 
 		var status status
