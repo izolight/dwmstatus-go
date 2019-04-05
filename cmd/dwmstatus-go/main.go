@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
+	"strings"
 	"time"
 
 	"github.com/prometheus/procfs/sysfs"
@@ -31,7 +33,7 @@ func main() {
 
 	config.allInterfaces = append(config.allInterfaces, config.wifiInterface)
 	config.allInterfaces = append(config.allInterfaces, config.lanInterfaces...)
-	config.allInterfaces = append(config.allInterfaces, config.vpnInterfaces...)
+	//config.allInterfaces = append(config.allInterfaces, config.vpnInterfaces...)
 
 	wifiClient, err := wifi.New()
 	if err != nil {
@@ -55,6 +57,12 @@ func main() {
 	nextMeasurement := time.Now().Truncate(time.Second).Add(5 * time.Second)
 	for {
 		status = ""
+
+		ips, err := refreshIPs(config.allInterfaces)
+		if err != nil {
+			log.Println(err)
+		}
+		status.addWithDelimiter("|", fmt.Sprintf("IPs: %s", ips))
 
 		// wifi stuff
 		bss, err := wifiClient.BSS(wifiInterface)
@@ -125,7 +133,7 @@ func calculateRemainingTime(energyNow int64, energyPrev int64, EnergyFull int64)
 		return int64(minutes)
 	} else {
 		minutes := float64(energyNow) / float64(charged) / 60 * 5
-		return int64(minutes)*(-1)
+		return int64(minutes) * (-1)
 	}
 }
 
@@ -140,4 +148,27 @@ func (s *status) addWithDelimiter(delimiter string, value string) {
 		*s += status(" " + delimiter + " ")
 	}
 	*s += status(value)
+}
+
+func refreshIPs(interfaces []string) (string, error) {
+	ips := ""
+	for _, name := range interfaces {
+		netIf, err := net.InterfaceByName(name)
+		if err != nil {
+			return "", err
+		}
+		addresses, err := netIf.Addrs()
+		if err != nil {
+			return "", err
+		}
+		for _, a := range addresses {
+			if !strings.HasPrefix(a.String(), "fe80:") {
+				if len(ips) > 0 {
+					ips += ", "
+				}
+				ips = a.String()
+			}
+		}
+	}
+	return ips, nil
 }
