@@ -125,7 +125,7 @@ func calculateRemainingTime(energyNow int64, energyPrev int64, EnergyFull int64)
 		return int64(minutes)
 	} else {
 		minutes := float64(energyNow) / float64(charged) / 60 * 5
-		return int64(minutes)
+		return int64(minutes)*(-1)
 	}
 }
 
