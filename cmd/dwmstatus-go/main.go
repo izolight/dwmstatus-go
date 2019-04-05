@@ -23,6 +23,18 @@ var config struct {
 	batteries     []string
 }
 
+var info struct {
+	status          status
+	prevRx, prevTx  uint64
+	prevEnergy      int64
+	remaining       int64
+	nextMeasurement time.Time
+	wifiInterface   *wifi.Interface
+	wifiClient      *wifi.Client
+	bss             *wifi.BSS
+	stationInfo     *wifi.StationInfo
+}
+
 type status string
 
 func main() {
@@ -33,47 +45,31 @@ func main() {
 
 	config.allInterfaces = append(config.allInterfaces, config.wifiInterface)
 	config.allInterfaces = append(config.allInterfaces, config.lanInterfaces...)
-	//config.allInterfaces = append(config.allInterfaces, config.vpnInterfaces...)
 
-	wifiClient, err := wifi.New()
+	err := initialise()
 	if err != nil {
 		log.Fatal(err)
 	}
-	interfaces, err := wifiClient.Interfaces()
-	if err != nil {
-		log.Fatal(err)
-	}
-	wifiInterface := &wifi.Interface{}
-	for _, ifi := range interfaces {
-		if ifi.Name == config.wifiInterface {
-			wifiInterface = ifi
-		}
-	}
 
-	var status status
-	var prevRx, prevTx uint64
-	var prevEnergy int64
-	var remaining int64
-	nextMeasurement := time.Now().Truncate(time.Second).Add(5 * time.Second)
 	for {
-		status = ""
+		info.status = ""
 
 		ips, err := refreshIPs(config.allInterfaces)
 		if err != nil {
 			log.Println(err)
 		}
-		status.addWithDelimiter("|", fmt.Sprintf("IPs: %s", ips))
+		info.status.addWithDelimiter("|", fmt.Sprintf("IPs: %s", ips))
 
 		// wifi stuff
-		bss, err := wifiClient.BSS(wifiInterface)
+		bss, err := info.wifiClient.BSS(info.wifiInterface)
 		if err != nil {
 			log.Println(err)
 		}
-		stationInfo, err := wifiClient.StationInfo(wifiInterface)
+		stationInfo, err := info.wifiClient.StationInfo(info.wifiInterface)
 		if err != nil {
 			log.Println(err)
 		}
-		status.addWithDelimiter("|", fmt.Sprintf("SSID: %s %d%%(%ddBm)", bss.SSID, wifiPercentage(stationInfo[0].Signal), stationInfo[0].Signal))
+		info.status.addWithDelimiter("|", fmt.Sprintf("SSID: %s %d%%(%ddBm)", bss.SSID, wifiPercentage(stationInfo[0].Signal), stationInfo[0].Signal))
 
 		// transfer stats
 		nd, err := procfs.NewNetDev()
@@ -82,9 +78,9 @@ func main() {
 		}
 		total := nd.Total()
 		rx, tx := total.RxBytes, total.TxBytes
-		status.addWithDelimiter("|", fmt.Sprintf("U:%s/s", humanize.Bytes(tx-prevTx)))
-		status.addWithDelimiter("|", fmt.Sprintf("D:%s/s", humanize.Bytes(rx-prevRx)))
-		prevRx, prevTx = rx, tx
+		info.status.addWithDelimiter("|", fmt.Sprintf("U:%s/s", humanize.Bytes(tx-info.prevTx)))
+		info.status.addWithDelimiter("|", fmt.Sprintf("D:%s/s", humanize.Bytes(rx-info.prevRx)))
+		info.prevRx, info.prevTx = rx, tx
 
 		// battery stats
 		psc, err := sysfs.NewPowerSupplyClass()
@@ -102,16 +98,35 @@ func main() {
 			EnergyFullDesign += *bat.EnergyFullDesign
 		}
 		measure := time.Now().Truncate(time.Second)
-		if measure.UnixNano() == nextMeasurement.UnixNano() {
-			nextMeasurement = nextMeasurement.Add(5 * time.Second)
-			remaining = calculateRemainingTime(energyNow, prevEnergy, energyFull)
-			prevEnergy = energyNow
+		if measure.UnixNano() == info.nextMeasurement.UnixNano() {
+			info.nextMeasurement = info.nextMeasurement.Add(5 * time.Second)
+			info.remaining = calculateRemainingTime(energyNow, info.prevEnergy, energyFull)
+			info.prevEnergy = energyNow
 		}
-		status.addWithDelimiter("|", fmt.Sprintf("BAT: %.1f%% %dMin", (float64(energyNow)/float64(energyFull))*100, remaining))
+		info.status.addWithDelimiter("|", fmt.Sprintf("BAT: %.1f%% %dMin", (float64(energyNow)/float64(energyFull))*100, info.remaining))
 
-		fmt.Println(status)
+		fmt.Println(info.status)
 		sleepUntil(1)
 	}
+}
+
+func initialise() error {
+	var err error
+	info.wifiClient, err = wifi.New()
+	if err != nil {
+		return err
+	}
+	interfaces, err := info.wifiClient.Interfaces()
+	if err != nil {
+		return err
+	}
+	for _, ifi := range interfaces {
+		if ifi.Name == config.wifiInterface {
+			info.wifiInterface = ifi
+		}
+	}
+	info.nextMeasurement = time.Now().Truncate(time.Second).Add(5 * time.Second)
+	return nil
 }
 
 func wifiPercentage(signal int) int {
