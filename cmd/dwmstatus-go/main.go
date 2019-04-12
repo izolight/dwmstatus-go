@@ -43,6 +43,9 @@ func main() {
 		}
 		plugins = append(plugins, batteryStats)
 	}
+	cpuInfo := &dwmstatusgo.CPUInfo{}
+	memInfo := dwmstatusgo.NewMemoryInfo()
+	plugins = append(plugins, cpuInfo, memInfo)
 
 	var status status
 	for {
