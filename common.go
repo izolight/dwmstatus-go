@@ -1,4 +1,4 @@
-package dwmstatusgo
+package dwmstatus
 
 type Refresher interface {
 	Refresh() string

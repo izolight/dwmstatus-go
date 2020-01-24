@@ -1,18 +1,19 @@
-package dwmstatusgo
+package dwmstatus
 
 import (
 	"fmt"
-	"github.com/mdlayher/wifi"
 	"log"
+
+	"github.com/mdlayher/wifi"
 )
 
 type WifiStats struct {
-	client *wifi.Client
-	ifi *wifi.Interface
-	IfiName string
+	client        *wifi.Client
+	ifi           *wifi.Interface
+	IfiName       string
 	signalPercent int
-	bss *wifi.BSS
-	stationInfo *wifi.StationInfo
+	bss           *wifi.BSS
+	stationInfo   *wifi.StationInfo
 }
 
 func (w *WifiStats) Refresh() string {

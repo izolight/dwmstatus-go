@@ -1,23 +1,24 @@
-package dwmstatusgo
+package dwmstatus
 
 import (
 	"fmt"
-	"github.com/prometheus/procfs/sysfs"
 	"log"
 	"time"
+
+	"github.com/prometheus/procfs/sysfs"
 )
 
 type BatteryStats struct {
-	Batteries []string
-	energyNow int64
-	energyFull int64
-	energyFullDesign int64
+	Batteries         []string
+	energyNow         int64
+	energyFull        int64
+	energyFullDesign  int64
 	energyNowPrevious int64
-	remaining int64
-	nextMeasurement time.Time
+	remaining         int64
+	nextMeasurement   time.Time
 }
 
-func (b *BatteryStats)calculateRemainingTime() int64 {
+func (b *BatteryStats) calculateRemainingTime() int64 {
 	remainingEnergy := b.energyFull - b.energyNow
 	charged := b.energyNow - b.energyNowPrevious
 	if charged == 0 {

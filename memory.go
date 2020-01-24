@@ -1,10 +1,11 @@
-package dwmstatusgo
+package dwmstatus
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/dustin/go-humanize"
 	"github.com/shirou/gopsutil/mem"
-	"log"
 )
 
 type MemoryInfo struct {

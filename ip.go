@@ -1,4 +1,4 @@
-package dwmstatusgo
+package dwmstatus
 
 import (
 	"fmt"

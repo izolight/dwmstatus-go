@@ -1,4 +1,4 @@
-module github.com/izolight/dwmstatus-go
+module github.com/izolight/dwmstatus
 
 go 1.12
 
