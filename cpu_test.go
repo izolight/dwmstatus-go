@@ -13,3 +13,12 @@ func TestRefreshCpuInfo(t *testing.T) {
 		time.Sleep(1 * time.Second)
 	}
 }
+
+func TestParseCPUStat(t *testing.T) {
+	p := NewCPUStat(WithPath("testdata/procstat"))
+	err := p.Parse()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(p)
+}

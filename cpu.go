@@ -1,7 +1,10 @@
 package dwmstatus
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/prometheus/procfs"
 )
@@ -61,4 +64,62 @@ func subtract(a, b procfs.CPUStat) procfs.CPUStat {
 		Guest:     a.Guest - b.Guest,
 		GuestNice: a.GuestNice - b.GuestNice,
 	}
+}
+
+func NewCPUStat(options... CPUStatOption) CPUStat {
+	c := CPUStat{
+		path: "/proc/stat",
+	}
+	for _, o := range options {
+		o(&c)
+	}
+	return c
+}
+
+type CPUStat struct {
+	path string
+}
+
+type CPUStatOption func(stat *CPUStat)
+
+func WithPath(path string) CPUStatOption {
+	return func(stat *CPUStat) {
+		stat.path = path
+	}
+}
+
+func (c *CPUStat) Parse() error {
+	file, err := os.Open(c.path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		text := scanner.Text()
+		if !strings.HasPrefix(text, "cpu") {
+			break
+		}
+		c := &cpuStat{}
+		_, err := fmt.Sscanf(text, "%s %d %d %d %d %d %d %d %d %d %d",
+			c.cpu, c.user, c.nice, c.sys, c.idle, c.iowait, c.irq, c.softirq, c.steal, c.guest, c.guestNice)
+		if err != nil {
+			return err
+		}
+
+	}
+}
+
+type cpuStat struct {
+	cpu string
+	user uint
+	nice uint
+	sys uint
+	idle uint
+	iowait uint
+	irq uint
+	softirq uint
+	steal uint
+	guest uint
+	guestNice uint
 }

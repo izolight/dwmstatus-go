@@ -5,10 +5,31 @@ import (
 	"log"
 	"net"
 	"strings"
+	"time"
 )
 
 type IPInfo struct {
 	Interfaces []string
+}
+
+type ipUpdater struct {
+	ipUpdate chan net.IPAddr
+	ticker   *time.Ticker
+}
+
+func newIPUpdater(ipUpdate chan net.IPAddr, tickInterval int) ipUpdater {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	fmt.Println(conn.LocalAddr().(*net.UDPAddr).IP)
+
+	return ipUpdater{
+		ipUpdate: ipUpdate,
+		ticker:   time.NewTicker(time.Duration(tickInterval) * time.Second),
+	}
 }
 
 func (i *IPInfo) Refresh() string {
